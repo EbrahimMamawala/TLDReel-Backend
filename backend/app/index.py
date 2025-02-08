@@ -1,8 +1,10 @@
 from fastapi import FastAPI # type: ignore
 from pydantic import BaseModel # type: ignore
 from contextlib import asynccontextmanager
+import json
+from pathlib import Path
 #from app.db import init_db
-from backend.app.models.topic import generate_manim_code
+from routes.topic import generate_topics
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,4 +31,18 @@ app.add_middleware(
 
 @app.post("/generate/")
 async def generate_text(request: PromptRequest):
-    return generate_manim_code(request.user_input)
+    topics = generate_topics(request.user_input)
+
+    # Save to file
+    with open(DATA_FILE, "w") as f:
+        json.dump({"topics": topics}, f)
+
+    return {"message": "Data saved successfully", "topics": topics}
+
+@app.get("/generate/")
+async def get_generated_text():
+    if DATA_FILE.exists():
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+        return data
+    return {"message": "No data found"}
