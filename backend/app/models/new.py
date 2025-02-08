@@ -19,13 +19,13 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 # Retrieve API keys from the environment
-from app.config import OPENAI_API_KEY, ELEVENLABS_API_KEY
+#from app.config import OPENAI_API_KEY, ELEVENLABS_API_KEY
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 # Initialize ElevenLabs client
 from elevenlabs.client import ElevenLabs
 from elevenlabs import VoiceSettings
-elevenlabs_client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ---------------------------
 # Pydantic models for storyboard
@@ -76,6 +76,7 @@ def generate_storyboard(topic: str) -> Storyboard:
 # ElevenLabs TTS: Convert text to speech and save as file
 # ---------------------------
 def text_to_speech_file(text: str) -> str:
+    elevenlabs_client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
     response = elevenlabs_client.text_to_speech.convert(
         voice_id="pNInz6obpgDQGcFmaJgB",  # Adam pre-made voice
         output_format="mp3_22050_32",
@@ -88,7 +89,7 @@ def text_to_speech_file(text: str) -> str:
             use_speaker_boost=True,
         ),
     )
-    save_file_path = f"{uuid.uuid4()}.mp3"
+    save_file_path = f"{uuid.uuid4()}.wav"
     with open(save_file_path, "wb") as f:
         for chunk in response:
             if chunk:
@@ -113,21 +114,22 @@ def generate_avatar_video(audio_file: str) -> str:
     reference_url = "https://raw.githubusercontent.com/adarshxs/temp/refs/heads/main/ladki.jpg"
     
     # Read and encode the local audio file as a Base64 data URI.
-    with open(audio_file, "rb") as af:
-        audio_data = af.read()
-    audio_base64 = base64.b64encode(audio_data).decode("utf-8")
-    audio_data_uri = f"data:audio/mp3;base64,{audio_base64}"
+    #with open(audio_file, "rb") as af:
+    #    audio_data = af.read()
+    #audio_base64 = base64.b64encode(audio_data).decode("utf-8")
+    #audio_data_uri = f"data:audio/mp3;base64,{audio_base64}"
     
     payload = {
         "reference": reference_url,
-        "audio": audio_data_uri,
+        "audio": f"backend/app/models/{audio_file}",
         "animation_mode": "human"
         # Add any additional keys required by your API.
     }
     
     try:
         response = requests.post(url, json=payload, timeout=30)
-        response.raise_for_status()
+        print(response.headers)
+        print(response.raise_for_status())
         # Save the response content as a video file.
         video_file = f"{uuid.uuid4()}.mp4"
         with open(video_file, "wb") as f:
@@ -144,8 +146,9 @@ def generate_avatar_video(audio_file: str) -> str:
 # Generate Manim Code using OpenAI GPT‑4
 # ---------------------------
 def generate_manim_code(scene_text: str) -> str:
+    client = OpenAI(api_key=OPENAI_API_KEY)
     prompt = f"Generate manim code that produces an animation visualizing: {scene_text}"
-    response = openai_client.chat.completions.create(
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",  # Using gpt-3.5-turbo; update as needed
         messages=[{"role": "user", "content": prompt}]
     )
