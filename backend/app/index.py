@@ -1,8 +1,8 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI # type: ignore
+from pydantic import BaseModel # type: ignore
 from contextlib import asynccontextmanager
 #from app.db import init_db
-from models.flowchart import generate_manim_code
+from backend.app.models.topic import generate_manim_code
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,7 +17,7 @@ app = FastAPI(lifespan=lifespan)
 class PromptRequest(BaseModel):
     user_input: str  # The variable coming from the frontend
 
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
 
 app.add_middleware(
     CORSMiddleware,

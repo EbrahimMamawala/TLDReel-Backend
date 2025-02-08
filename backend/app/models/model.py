@@ -1,21 +1,21 @@
 import os
 import uuid
 import base64
-import requests
+import requests # type: ignore
 import shutil
 import tempfile
 import logging
-from pydantic import BaseModel
+from  pydantic import BaseModel # type: ignore
 from typing import List, Optional
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 # MoviePy imports
-from moviepy import *
+from moviepy import * # type: ignore
 
 # ElevenLabs imports
-from elevenlabs.client import ElevenLabs
-from elevenlabs import VoiceSettings
-from pydub import AudioSegment
+from elevenlabs.client import ElevenLabs # type: ignore
+from elevenlabs import VoiceSettings # type: ignore
+import ffmpeg # type: ignore
 
 # Load environment variables
 load_dotenv()
@@ -73,7 +73,7 @@ def generate_storyboard(topic: str) -> Storyboard:
 def text_to_speech_file(text: str) -> str:
     client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
     response = client.text_to_speech.convert(
-        voice_id="pNInz6obpgDQGcFmaJgB",  # Adam's pre-made voice
+        voice_id="9BWtsMINqrJLrRacOk9x",  # Adam's pre-made voice
         output_format="mp3_22050_32",
         text=text,
         model_id="eleven_turbo_v2_5",
@@ -95,12 +95,23 @@ def text_to_speech_file(text: str) -> str:
 # ---------------------------
 # Convert MP3 to WAV using pydub
 # ---------------------------
+logger = logging.getLogger(__name__)
+
 def convert_mp3_to_wav(mp3_file: str) -> str:
-    sound = AudioSegment.from_mp3(mp3_file)
     wav_file = mp3_file.replace(".mp3", ".wav")
-    sound.export(wav_file, format="wav")
-    logger.info(f"Converted {mp3_file} to {wav_file}")
-    return wav_file
+    
+    try:
+        (
+            ffmpeg
+            .input(mp3_file)
+            .output(wav_file, format='wav', acodec='pcm_s16le')  # Standard WAV format
+            .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+        )
+        logger.info(f"Converted {mp3_file} to {wav_file}")
+        return wav_file
+    except ffmpeg.Error as e:
+        logger.error(f"Error converting {mp3_file} to {wav_file}: {e}")
+        return None
 
 # ---------------------------
 # Generate Avatar Video via Lipsync Endpoint
@@ -159,10 +170,10 @@ def generate_manim_video(topic: str) -> str:
 # Combine Videos Vertically using MoviePy
 # ---------------------------
 def combine_videos(upper_video: str, lower_video: str, output_file: str) -> str:
-    clip_upper = VideoFileClip(upper_video)
-    clip_lower = VideoFileClip(lower_video)
+    clip_upper = VideoFileClip(upper_video) # type: ignore
+    clip_lower = VideoFileClip(lower_video) # type: ignore
     # Optionally, resize clips so that their widths match.
-    final_clip = clips_array([[clip_upper], [clip_lower]])
+    final_clip = clips_array([[clip_upper], [clip_lower]]) # type: ignore
     final_clip.write_videofile(output_file, codec="libx264")
     return output_file
 
@@ -199,4 +210,4 @@ def main(topic_prompt: str):
     print(f"Final reel available at: {final_reel_path}")
 
 if __name__ == "__main__":
-    main("Quantum Entanglement")
+    main("explain NodeJS")
