@@ -1,20 +1,15 @@
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
-from dotenv import load_dotenv
+# api/database.py
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+from config import DATABASE_URL
 
-load_dotenv()  # Load environment variables
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = os.getenv("DB_NAME", "your_database_name")
-
-client = None  # Global variable for MongoDB client
-db = None  # Global variable for database instance
-
-async def init_db():
-    global client, db
-    if not MONGO_URI:
-        raise ValueError("MONGO_URI is not set in the .env file")
-    
-    client = AsyncIOMotorClient(MONGO_URI)
-    db = client[DB_NAME]
-    print(f"Connected to MongoDB: {DB_NAME}")
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

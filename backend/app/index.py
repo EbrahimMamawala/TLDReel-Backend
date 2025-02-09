@@ -3,13 +3,17 @@ from pydantic import BaseModel # type: ignore
 from contextlib import asynccontextmanager
 import json
 from pathlib import Path
-#from app.db import init_db
-from routes.topic import generate_topics
+from app.db import init_db
+from app.db.database import get_db
+from app.db.crud import get_quizzes, get_topics, get_roadmaps, create_topic, create_quiz, create_roadmap
+from sqlalchemy.orm import Session # type: ignore
+from crud.functions import generate_topics
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up...")
-    #init_db()  # Initialize the database
+    init_db()  # Initialize the database
     yield
     print("Shutting down...")  # Cleanup tasks if needed
 
@@ -17,7 +21,12 @@ app = FastAPI(lifespan=lifespan)
 
 # Request model
 class PromptRequest(BaseModel):
+    id : str
     user_input: str  # The variable coming from the frontend
+
+class QuizRequest(BaseModel): 
+    id : str
+    user_input: str
 
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 
@@ -33,16 +42,6 @@ app.add_middleware(
 async def generate_text(request: PromptRequest):
     topics = generate_topics(request.user_input)
 
-    # Save to file
-    with open(DATA_FILE, "w") as f:
-        json.dump({"topics": topics}, f)
-
-    return {"message": "Data saved successfully", "topics": topics}
-
-@app.get("/generate/")
-async def get_generated_text():
-    if DATA_FILE.exists():
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-        return data
-    return {"message": "No data found"}
+@app.get("/quizzes/{topic_id}")
+async def get_generated_quizzes(topic_id: str, db: Session = Depends(get_db)):
+    return get_quizzes(db, topic_id)

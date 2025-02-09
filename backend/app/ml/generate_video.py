@@ -18,7 +18,7 @@ from elevenlabs import VoiceSettings # type: ignore
 import ffmpeg # type: ignore
 
 # Load environment variables
-load_dotenv()
+load_dotenv('backend\\app\\.env')
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 # (Assume OPENAI_API_KEY is set in your environment for your endpoints if needed)
 
@@ -48,19 +48,19 @@ def generate_storyboard(topic: str) -> Storyboard:
             {
                 "id": "scene1",
                 "narration": f"Introduction to {topic}. Explaining the basics.",
-                "manim_prompt": f"Create an animation that visually explains the basic principles of {topic}.",
+                "manim_prompt": f"Create an animation that visually explains the basic principles of {topic} for a duration of 20 seconds. Ensure it is visually engaging. Make sure the elements are not overlapping, and are in logical cohesion, with as many animated elements as possible",
                 "optional_image_prompt": None
-            },
+            }, 
             {
                 "id": "scene2",
                 "narration": f"Deep dive into {topic}. Discussing detailed aspects.",
-                "manim_prompt": f"Generate an animation showing the dynamic behavior of {topic}.",
+                "manim_prompt": f"Generate an animation showing the dynamic behavior of {topic} for a duration of atleast 20 seconds.",
                 "optional_image_prompt": None
             },
             {
                 "id": "scene3",
                 "narration": f"Conclusion on {topic}. Summarize the key takeaways.",
-                "manim_prompt": f"Create a summary animation for {topic}.",
+                "manim_prompt": f"Create a summary animation for {topic}. ",
                 "optional_image_prompt": None
             }
         ]
