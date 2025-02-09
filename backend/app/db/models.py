@@ -1,31 +1,23 @@
-# api/models.py
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
-from sqlalchemy.orm import relationship
-from api.database import Base
+from beanie import Document
+from typing import List
 
-class Topic(Base):
-    __tablename__ = "topics"
+class Topic(Document):
+    name: str
+    description: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    description = Column(JSON, nullable=False)
+    class Settings:
+        collection = "topics"
 
-class Quiz(Base):
-    __tablename__ = "quizzes"
+class Quiz(Document):
+    topic_id: str
+    question_data: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    topic_id = Column(Integer, ForeignKey("topics.id", ondelete="CASCADE"))
-    question_data = Column(JSON, nullable=False)  # Stores answer choices as JSON
+    class Settings:
+        collection = "quizzes"
 
-    topic = relationship("Topic", back_populates="quizzes")
+class Roadmap(Document):
+    topic_id: str
+    steps: str
 
-Topic.quizzes = relationship("Quiz", back_populates="topic", cascade="all, delete-orphan")
-
-class Roadmap(Base):
-    __tablename__ = "roadmaps"
-
-    id = Column(Integer, primary_key=True, index=True)
-    topic_id = Column(Integer, ForeignKey("topics.id"))
-    steps = Column(Text)  # JSON format or delimited steps
-
-    topic = relationship("Topic")
+    class Settings:
+        collection = "roadmaps"

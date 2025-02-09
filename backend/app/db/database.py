@@ -1,15 +1,14 @@
-# api/database.py
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from config import DATABASE_URL
+from motor.motor_asyncio import AsyncIOMotorClient
+from beanie import init_beanie
+from app.models import Topic, Quiz, Roadmap
+import os
+from dotenv import load_dotenv
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+load_dotenv("backend/app/.env")
+MONGO_URI = os.getenv("MONGO_URI")
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+client = AsyncIOMotorClient(MONGO_URI)
+db = client.get_database("mydatabase")
+
+async def init_db():
+    await init_beanie(database=db, document_models=[Topic, Quiz, Roadmap])

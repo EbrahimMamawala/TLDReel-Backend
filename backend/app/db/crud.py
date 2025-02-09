@@ -1,33 +1,25 @@
-# api/crud.py
-from sqlalchemy.orm import Session
-from app import models
+from app.models import Topic, Quiz, Roadmap
 
-def create_topic(db: Session, name: str, description: str):
-    topic = models.Topic(name=name, description=description)
-    db.add(topic)
-    db.commit()
-    db.refresh(topic)
+async def create_topic(name: str, description: str):
+    topic = Topic(name=name, description=description)
+    await topic.insert()
     return topic
 
-def create_quiz(db: Session, topic_id: int, question_data: dict):
-    quiz = models.Quiz(topic_id=topic_id, question_data=question_data)
-    db.add(quiz)
-    db.commit()
-    db.refresh(quiz)
+async def create_quiz(topic_id: str, question_data: str):
+    quiz = Quiz(topic_id=topic_id, question_data=question_data)
+    await quiz.insert()
     return quiz
 
-def create_roadmap(db: Session, topic_id: int, steps: str):
-    roadmap = models.Roadmap(topic_id=topic_id, steps=steps)
-    db.add(roadmap)
-    db.commit()
-    db.refresh(roadmap)
+async def create_roadmap(topic_id: str, steps: str):
+    roadmap = Roadmap(topic_id=topic_id, steps=steps)
+    await roadmap.insert()
     return roadmap
 
-def get_topics(db: Session):
-    return db.query(models.Topic).all()
+async def get_topics():
+    return await Topic.find().to_list()
 
-def get_quizzes(db: Session, topic_id: int):
-    return db.query(models.Quiz).filter(models.Quiz.topic_id == topic_id).all()
+async def get_quizzes(topic_id: str):
+    return await Quiz.find(Quiz.topic_id == topic_id).to_list()
 
-def get_roadmaps(db: Session, topic_id: int):
-    return db.query(models.Roadmap).filter(models.Roadmap.topic_id == topic_id).all()
+async def get_roadmaps(topic_id: str):
+    return await Roadmap.find(Roadmap.topic_id == topic_id).to_list()
