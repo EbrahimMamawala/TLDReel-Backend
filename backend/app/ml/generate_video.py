@@ -18,7 +18,7 @@ from elevenlabs import VoiceSettings # type: ignore
 import ffmpeg # type: ignore
 
 # Load environment variables
-load_dotenv('backend\\app\\.env')
+load_dotenv('backend/app/.env')
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 # (Assume OPENAI_API_KEY is set in your environment for your endpoints if needed)
 
